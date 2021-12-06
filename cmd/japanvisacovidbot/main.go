@@ -5,6 +5,7 @@ import (
 	"github.com/ervitis/japanvisacovidbot/ports"
 	"github.com/ervitis/japanvisacovidbot/repo"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -69,6 +70,14 @@ func main() {
 			}
 		}
 	}(user, covidBot, db)
+
+	go func() {
+		http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+
+		log.Panic(http.ListenAndServe(":"+os.Getenv("PORT"), nil))
+	}()
 
 	covidBot.Handle("/amialive", func(m *tb.Message) {
 		log.Print("called /amialive")

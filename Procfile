@@ -1,1 +1,1 @@
-worker: japanvisacovidbot
+web: japanvisacovidbot
