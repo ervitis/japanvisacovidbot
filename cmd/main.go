@@ -2,8 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/ervitis/japanvisacovidbot/ports"
 	"github.com/ervitis/japanvisacovidbot/repo"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/ervitis/japanvisacovidbot/jacrawler"
@@ -34,15 +38,13 @@ func init() {
 }
 
 func main() {
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+
 	db := repo.New(&repo.DBConfig)
 
 	if TelegUser.ID == 0 {
 		panic("Must set telegram user ID")
-	}
-
-	embassies := []jacrawler.IEmbassyData{
-		jacrawler.NewJapaneseEmbassy(),
-		jacrawler.NewEnglishEmbassy(),
 	}
 
 	covidBot, err := tb.NewBot(tb.Settings{Token: ApiSecretParameters.Token, Poller: &tb.LongPoller{Timeout: 10 * time.Second}})
@@ -53,6 +55,37 @@ func main() {
 	user := &tb.User{ID: TelegUser.ID}
 
 	// make a tick to execute this or cron every 2 hours
+	ticker := time.NewTicker(5 * time.Hour)
+	done := make(chan bool)
+
+	go func(user *tb.User, covidBot *tb.Bot, db ports.IConnection) {
+		for {
+			select {
+			case <-done:
+				return
+			case t := <-ticker.C:
+				log.Println("Executed ticker at", t)
+				doCrawlerService(user, covidBot, db)
+			}
+		}
+	}(user, covidBot, db)
+
+	covidBot.Handle("/amialive", func(m *tb.Message) {
+		log.Print("called /amialive")
+		_, _ = covidBot.Send(m.Sender, "Hi! I am still alive!")
+	})
+
+	covidBot.Start()
+	<-stop
+	done <- true
+}
+
+func doCrawlerService(user *tb.User, covidBot *tb.Bot, db ports.IConnection) {
+	embassies := []jacrawler.IEmbassyData{
+		jacrawler.NewJapaneseEmbassy(),
+		jacrawler.NewEnglishEmbassy(),
+	}
+
 	for _, embassy := range embassies {
 		crawler := jacrawler.NewCovidCrawler(embassy)
 		data, err := crawler.CrawlPage()
