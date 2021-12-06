@@ -1,1 +1,1 @@
-web: japanvisacovidbot
+web: bin/japanvisacovidbot
