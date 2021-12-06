@@ -6,7 +6,6 @@ import (
 	"github.com/ervitis/japanvisacovidbot/ports"
 	"log"
 	"regexp"
-	"time"
 )
 
 type (
@@ -32,21 +31,14 @@ func NewEnglishEmbassy() IEmbassyData {
 }
 
 func (e *english) IsDateUpdated(data *model.Embassy, db ports.IConnection) bool {
-	data.EmbassyISO = e.iso
-	c := data
+	c := new(model.Embassy)
+	c.EmbassyISO = e.iso
 	if err := db.FetchLatestDateFromEmbassy(c); err != nil {
 		log.Printf("There was an error fetching data from db: %s\n", err)
 		return true
 	}
 
-	y, m, d := time.Now().Round(0).Date()
-	now, err := time.Parse("2006-01-2", fmt.Sprintf("%d-%d-%d", y, int(m), d))
-	if err != nil {
-		log.Printf("There was an error parsing date from db: %s\n", err)
-		return true
-	}
-	b := data.UpdatedDate.After(now) || now.Equal(data.UpdatedDate)
-	return b
+	return c.UpdatedDate.After(data.UpdatedDate) || c.UpdatedDate.Equal(data.UpdatedDate)
 }
 
 func (e *english) UpdateDate(data *model.Embassy, db ports.IConnection) error {

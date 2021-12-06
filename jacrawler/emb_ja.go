@@ -37,8 +37,8 @@ func NewJapaneseEmbassy() IEmbassyData {
 }
 
 func (j *japanese) IsDateUpdated(data *model.Embassy, db ports.IConnection) bool {
-	data.EmbassyISO = j.iso
 	c := new(model.Embassy)
+	c.EmbassyISO = j.iso
 	if err := db.FetchLatestDateFromEmbassy(c); err != nil {
 		log.Printf("There was an error fetching data from db: %s\n", err)
 		return true
