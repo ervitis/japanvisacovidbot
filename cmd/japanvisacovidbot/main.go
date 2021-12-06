@@ -42,6 +42,11 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Panic("PORT variable not specified")
+	}
+
 	db := repo.New(&repo.DBConfig)
 
 	if TelegUser.ID == 0 {
@@ -76,7 +81,7 @@ func main() {
 			w.WriteHeader(http.StatusOK)
 		})
 
-		log.Panic(http.ListenAndServe(":"+os.Getenv("PORT"), nil))
+		log.Panic(http.ListenAndServe(":"+port, nil))
 	}()
 
 	covidBot.Handle("/amialive", func(m *tb.Message) {
