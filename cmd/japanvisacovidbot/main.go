@@ -77,11 +77,15 @@ func main() {
 	}(user, covidBot, db)
 
 	go func() {
-		http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		mux := http.NewServeMux()
+
+		mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		})
 
-		log.Panic(http.ListenAndServe(":"+port, nil))
+		log.Println("Initializing web health check")
+
+		log.Panic(http.ListenAndServe(":"+port, mux))
 	}()
 
 	covidBot.Handle("/amialive", func(m *tb.Message) {
