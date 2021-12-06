@@ -17,7 +17,7 @@ type (
 )
 
 func New(parameters *DBConfigParameters) ports.IConnection {
-	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s",
 		parameters.Host, parameters.Port, parameters.User, parameters.Password, parameters.DB)
 
 	conn, err := sql.Open("postgres", psqlconn)
