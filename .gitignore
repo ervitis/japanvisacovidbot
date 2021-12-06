@@ -1,0 +1,5 @@
+env
+dockerfiles
+data
+.vscode
+.idea
