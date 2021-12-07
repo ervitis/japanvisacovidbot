@@ -80,6 +80,7 @@ func main() {
 		mux := http.NewServeMux()
 
 		mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+			log.Printf("HealthCheck at %s from %s\n", time.Now().Format(time.RFC3339), r.RemoteAddr)
 			w.WriteHeader(http.StatusOK)
 		})
 
