@@ -4,8 +4,12 @@ import (
 	"fmt"
 	"github.com/ervitis/japanvisacovidbot/model"
 	"github.com/ervitis/japanvisacovidbot/ports"
+	"github.com/gocolly/colly/v2"
 	"log"
 	"regexp"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type (
@@ -76,4 +80,22 @@ func (e *english) GetDateValue(data map[string]string) string {
 
 func (e *english) GetISO() string {
 	return e.iso
+}
+
+func (e *english) GetUpdatedDateFromText(el *colly.HTMLElement) (time.Time, error) {
+	if strings.TrimSpace(el.Text) == "" {
+		return time.Time{}, nil
+	}
+
+	data := getParams(e, el.Text)
+
+	y, err := strconv.Atoi(data[pYear])
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	data[pYear] = strconv.Itoa(e.YearModifier() + y)
+
+	pt, err := time.Parse(e.GetDateLayout(), e.GetDateValue(data))
+	return pt, err
 }

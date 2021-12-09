@@ -9,6 +9,7 @@ type (
 		DB       string `envconfig:"POSTGRES_DB" default:"japancovid"`
 		Host     string `envconfig:"POSTGRES_HOST" default:"localhost"`
 		Port     int    `envconfig:"POSTGRES_PORT" default:"5432"`
+		Options  string `envconfig:"POSTGRES_CONN_OPTS"`
 	}
 )
 

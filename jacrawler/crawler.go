@@ -3,12 +3,9 @@ package jacrawler
 import (
 	"github.com/ervitis/japanvisacovidbot/model"
 	"github.com/ervitis/japanvisacovidbot/ports"
-	"regexp"
-	"strconv"
-	"strings"
-	"time"
-
 	"github.com/gocolly/colly/v2"
+	"regexp"
+	"time"
 )
 
 const (
@@ -47,6 +44,7 @@ type (
 		IsDateUpdated(*model.Embassy, ports.IConnection) bool
 		UpdateDate(*model.Embassy, ports.IConnection) error
 		GetISO() string
+		GetUpdatedDateFromText(*colly.HTMLElement) (time.Time, error)
 	}
 )
 
@@ -57,42 +55,12 @@ func NewCovidCrawler(emb IEmbassyData) ICovidCrawler {
 	}
 }
 
-func (c *covidCrawl) getParams(text string) (paramsMap map[string]string) {
-	match := c.emb.GetRegex().FindStringSubmatch(text)
-
-	paramsMap = make(map[string]string)
-	for i, name := range c.emb.GetRegex().SubexpNames() {
-		if i > 0 && i <= len(match) {
-			paramsMap[name] = match[i]
-		}
-	}
-	return paramsMap
-}
-
-func (c *covidCrawl) getUpdatedDateFromText(text string) (time.Time, error) {
-	if strings.TrimSpace(text) == "" {
-		return time.Time{}, nil
-	}
-
-	data := c.getParams(text)
-
-	y, err := strconv.Atoi(data[pYear])
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	data[pYear] = strconv.Itoa(c.emb.YearModifier() + y)
-
-	pt, err := time.Parse(c.emb.GetDateLayout(), c.emb.GetDateValue(data))
-	return pt, err
-}
-
 func (c *covidCrawl) CrawlPage() (data *model.Embassy, err error) {
 	data = new(model.Embassy)
 	var errCrawler error
 
 	c.crawler.OnHTML(c.emb.GetHtmlSearchElement(), func(h *colly.HTMLElement) {
-		d, err := c.getUpdatedDateFromText(h.Text)
+		d, err := c.emb.GetUpdatedDateFromText(h)
 		if err != nil {
 			errCrawler = err
 		} else {

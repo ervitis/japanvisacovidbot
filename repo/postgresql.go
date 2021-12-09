@@ -7,6 +7,7 @@ import (
 	"github.com/ervitis/japanvisacovidbot/model"
 	"github.com/ervitis/japanvisacovidbot/ports"
 	_ "github.com/lib/pq"
+	"strings"
 	"time"
 )
 
@@ -17,8 +18,9 @@ type (
 )
 
 func New(parameters *DBConfigParameters) ports.IConnection {
-	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s",
-		parameters.Host, parameters.Port, parameters.User, parameters.Password, parameters.DB)
+	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s %s",
+		parameters.Host, parameters.Port, parameters.User, parameters.Password, parameters.DB, parameters.Options)
+	psqlconn = strings.TrimSpace(psqlconn)
 
 	conn, err := sql.Open("postgres", psqlconn)
 	if err != nil {

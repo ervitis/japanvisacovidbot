@@ -40,7 +40,7 @@ func init() {
 
 func main() {
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -61,7 +61,7 @@ func main() {
 	user := &tb.User{ID: TelegUser.ID}
 
 	// make a tick to execute this or cron every 2 hours
-	ticker := time.NewTicker(5 * time.Hour)
+	ticker := time.NewTicker(5 * time.Second)
 	done := make(chan bool)
 
 	go func(user *tb.User, covidBot *tb.Bot, db ports.IConnection) {
