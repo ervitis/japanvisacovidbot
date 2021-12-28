@@ -2,13 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/ervitis/japanvisacovidbot"
 	"github.com/ervitis/japanvisacovidbot/ports"
 	"github.com/ervitis/japanvisacovidbot/repo"
 	"log"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/ervitis/japanvisacovidbot/jacrawler"
@@ -36,12 +35,10 @@ func init() {
 	envconfig.MustProcess("", &TelegUser)
 
 	repo.LoadDBConfig()
+	japanvisacovidbot.LoadGlobalSignalHandler()
 }
 
 func main() {
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
-
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Panic("PORT variable not specified")
@@ -62,12 +59,11 @@ func main() {
 
 	// make a tick to execute this or cron every 2 hours
 	ticker := time.NewTicker(3 * time.Hour)
-	done := make(chan bool)
 
 	go func(user *tb.User, covidBot *tb.Bot, db ports.IConnection) {
 		for {
 			select {
-			case <-done:
+			case <-japanvisacovidbot.GlobalSignalHandler:
 				return
 			case t := <-ticker.C:
 				log.Println("Executed ticker at", t)
@@ -94,9 +90,14 @@ func main() {
 		_, _ = covidBot.Send(m.Sender, "Hi! I am still alive!")
 	})
 
+	go func() {
+		select {
+		case <-japanvisacovidbot.GlobalSignalHandler:
+			covidBot.Stop()
+		}
+	}()
+
 	covidBot.Start()
-	<-stop
-	done <- true
 }
 
 func doCrawlerService(user *tb.User, covidBot *tb.Bot, db ports.IConnection) {
