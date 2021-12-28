@@ -61,7 +61,7 @@ func main() {
 	user := &tb.User{ID: TelegUser.ID}
 
 	// make a tick to execute this or cron every 2 hours
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(3 * time.Hour)
 	done := make(chan bool)
 
 	go func(user *tb.User, covidBot *tb.Bot, db ports.IConnection) {
