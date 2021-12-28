@@ -44,7 +44,7 @@ type (
 		IsDateUpdated(*model.Embassy, ports.IConnection) bool
 		UpdateDate(*model.Embassy, ports.IConnection) error
 		GetISO() string
-		GetUpdatedDateFromText(*colly.HTMLElement) (time.Time, error)
+		GetUpdatedDateFromText(*colly.HTMLElement) (time.Time, bool, error)
 	}
 )
 
@@ -60,11 +60,13 @@ func (c *covidCrawl) CrawlPage() (data *model.Embassy, err error) {
 	var errCrawler error
 
 	c.crawler.OnHTML(c.emb.GetHtmlSearchElement(), func(h *colly.HTMLElement) {
-		d, err := c.emb.GetUpdatedDateFromText(h)
-		if err != nil {
+		d, isCritical, err := c.emb.GetUpdatedDateFromText(h)
+		if err != nil && isCritical {
 			errCrawler = err
 		} else {
-			data.UpdatedDate = d
+			if !d.IsZero() {
+				data.UpdatedDate = d
+			}
 		}
 	})
 

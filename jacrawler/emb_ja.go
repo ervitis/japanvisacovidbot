@@ -88,20 +88,20 @@ func (j *japanese) GetISO() string {
 	return j.iso
 }
 
-func (j *japanese) GetUpdatedDateFromText(el *colly.HTMLElement) (time.Time, error) {
+func (j *japanese) GetUpdatedDateFromText(el *colly.HTMLElement) (time.Time, bool, error) {
 	if strings.TrimSpace(el.Text) == "" {
-		return time.Time{}, nil
+		return time.Time{}, false, nil
 	}
 
 	data := getParams(j, el.Text)
 
 	y, err := strconv.Atoi(data[pYear])
 	if err != nil {
-		return time.Time{}, err
+		return time.Time{}, true, err
 	}
 
 	data[pYear] = strconv.Itoa(j.YearModifier() + y)
 
 	pt, err := time.Parse(j.GetDateLayout(), j.GetDateValue(data))
-	return pt, err
+	return pt, false, err
 }

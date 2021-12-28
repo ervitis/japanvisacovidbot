@@ -82,20 +82,20 @@ func (e *english) GetISO() string {
 	return e.iso
 }
 
-func (e *english) GetUpdatedDateFromText(el *colly.HTMLElement) (time.Time, error) {
+func (e *english) GetUpdatedDateFromText(el *colly.HTMLElement) (time.Time, bool, error) {
 	if strings.TrimSpace(el.Text) == "" {
-		return time.Time{}, nil
+		return time.Time{}, false, nil
 	}
 
 	data := getParams(e, el.Text)
 
 	y, err := strconv.Atoi(data[pYear])
 	if err != nil {
-		return time.Time{}, err
+		return time.Time{}, true, err
 	}
 
 	data[pYear] = strconv.Itoa(e.YearModifier() + y)
 
 	pt, err := time.Parse(e.GetDateLayout(), e.GetDateValue(data))
-	return pt, err
+	return pt, false, err
 }

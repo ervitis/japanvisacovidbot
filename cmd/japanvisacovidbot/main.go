@@ -61,7 +61,7 @@ func main() {
 	user := &tb.User{ID: TelegUser.ID}
 
 	// make a tick to execute this or cron every 2 hours
-	ticker := time.NewTicker(5 * time.Hour)
+	ticker := time.NewTicker(10 * time.Second)
 	done := make(chan bool)
 
 	go func(user *tb.User, covidBot *tb.Bot, db ports.IConnection) {
@@ -103,6 +103,7 @@ func doCrawlerService(user *tb.User, covidBot *tb.Bot, db ports.IConnection) {
 	embassies := []jacrawler.IEmbassyData{
 		jacrawler.NewJapaneseEmbassy(),
 		jacrawler.NewEnglishEmbassy(),
+		jacrawler.NewSpanishEmbassy(),
 	}
 
 	for _, embassy := range embassies {
