@@ -2,7 +2,7 @@
 
 CONTAINER_RUNTIME=$(command -v podman &> /dev/null && echo podman || echo docker)
 
-mkdir -p "./data"
+mkdir -p "/tmp/datacoviddb"
 
 $CONTAINER_RUNTIME run \
 --rm \
@@ -12,5 +12,5 @@ $CONTAINER_RUNTIME run \
 -e POSTGRES_DB="${POSTGRES_DB}" \
 -p 5432:5432 \
 -v ./sql/tables.sql:/docker-entrypoint-initdb.d/1.sql \
--v ./data:/var/lib/postgresql/data \
+-v /tmp/datacoviddb:/var/lib/postgresql/data \
 docker.io/library/postgres:14.1

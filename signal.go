@@ -6,11 +6,17 @@ import (
 	"syscall"
 )
 
+type (
+	GlobalSignalHandlerData struct {
+		Signals chan os.Signal
+	}
+)
+
 var (
-	GlobalSignalHandler chan os.Signal
+	GlobalSignalHandler GlobalSignalHandlerData
 )
 
 func LoadGlobalSignalHandler() {
-	GlobalSignalHandler = make(chan os.Signal)
-	signal.Notify(GlobalSignalHandler, syscall.SIGTERM, syscall.SIGKILL, os.Interrupt)
+	GlobalSignalHandler.Signals = make(chan os.Signal, 1)
+	signal.Notify(GlobalSignalHandler.Signals, syscall.SIGTERM, os.Interrupt)
 }

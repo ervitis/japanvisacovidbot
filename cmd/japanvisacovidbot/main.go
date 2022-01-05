@@ -3,104 +3,63 @@ package main
 import (
 	"fmt"
 	"github.com/ervitis/japanvisacovidbot"
+	"github.com/ervitis/japanvisacovidbot/bots"
+	"github.com/ervitis/japanvisacovidbot/bots/telegram"
 	"github.com/ervitis/japanvisacovidbot/ports"
 	"github.com/ervitis/japanvisacovidbot/repo"
 	"log"
-	"net/http"
-	"os"
 	"time"
 
 	"github.com/ervitis/japanvisacovidbot/jacrawler"
-	"github.com/kelseyhightower/envconfig"
-	tb "gopkg.in/tucnak/telebot.v2"
-)
-
-type (
-	ApiSecrets struct {
-		Token string `envconfig:"TOKEN"`
-	}
-
-	TelegramUser struct {
-		ID int `envconfig:"TELEGRAM_USERID"`
-	}
 )
 
 var (
-	ApiSecretParameters ApiSecrets
-	TelegUser           TelegramUser
+	tickerCheckEmbassyPages = time.NewTicker(3 * time.Hour)
 )
 
 func init() {
-	envconfig.MustProcess("", &ApiSecretParameters)
-	envconfig.MustProcess("", &TelegUser)
-
+	telegram.LoadTelegramConfig()
 	repo.LoadDBConfig()
 	japanvisacovidbot.LoadGlobalSignalHandler()
 }
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		log.Panic("PORT variable not specified")
-	}
-
 	db := repo.New(&repo.DBConfig)
-
-	if TelegUser.ID == 0 {
-		panic("Must set telegram user ID")
+	covidBots := []bots.IBot{
+		telegram.New(&telegram.TelegramConfig),
 	}
+	server := japanvisacovidbot.NewServer()
 
-	covidBot, err := tb.NewBot(tb.Settings{Token: ApiSecretParameters.Token, Poller: &tb.LongPoller{Timeout: 10 * time.Second}})
-	if err != nil {
-		panic(err)
-	}
-
-	user := &tb.User{ID: TelegUser.ID}
-
-	// make a tick to execute this or cron every 2 hours
-	ticker := time.NewTicker(3 * time.Hour)
-
-	go func(user *tb.User, covidBot *tb.Bot, db ports.IConnection) {
+	go func(bots []bots.IBot, db ports.IConnection) {
 		for {
 			select {
-			case <-japanvisacovidbot.GlobalSignalHandler:
+			case <-japanvisacovidbot.GlobalSignalHandler.Signals:
+				log.Println("cleaning servers...")
+				tickerCheckEmbassyPages.Stop()
+				for _, bot := range bots {
+					bot.Close()
+				}
+				server.Close()
 				return
-			case t := <-ticker.C:
+			case t := <-tickerCheckEmbassyPages.C:
 				log.Println("Executed ticker at", t)
-				doCrawlerService(user, covidBot, db)
+				for _, bot := range bots {
+					doCrawlerService(bot, db)
+				}
 			}
 		}
-	}(user, covidBot, db)
+	}(covidBots, db)
 
-	go func() {
-		mux := http.NewServeMux()
-
-		mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-			log.Printf("HealthCheck at %s from %s\n", time.Now().Format(time.RFC3339), r.RemoteAddr)
-			w.WriteHeader(http.StatusOK)
-		})
-
-		log.Println("Initializing web health check")
-
-		log.Panic(http.ListenAndServe(":"+port, mux))
-	}()
-
-	covidBot.Handle("/amialive", func(m *tb.Message) {
-		log.Print("called /amialive")
-		_, _ = covidBot.Send(m.Sender, "Hi! I am still alive!")
-	})
-
-	go func() {
-		select {
-		case <-japanvisacovidbot.GlobalSignalHandler:
-			covidBot.Stop()
-		}
-	}()
-
-	covidBot.Start()
+	for _, bot := range covidBots {
+		go func(bot bots.IBot) {
+			log.Fatal(bot.StartServer())
+		}(bot)
+	}
+	server.StartServer()
+	close(japanvisacovidbot.GlobalSignalHandler.Signals)
 }
 
-func doCrawlerService(user *tb.User, covidBot *tb.Bot, db ports.IConnection) {
+func doCrawlerService(covidBot bots.IBot, db ports.IConnection) {
 	embassies := []jacrawler.IEmbassyData{
 		jacrawler.NewJapaneseEmbassy(),
 		jacrawler.NewEnglishEmbassy(),
@@ -125,7 +84,7 @@ func doCrawlerService(user *tb.User, covidBot *tb.Bot, db ports.IConnection) {
 		}
 
 		msg := fmt.Sprintf("There is an update in the embassy of %s, go to the web %s", embassy.GetISO(), embassy.GetUri())
-		if _, err := covidBot.Send(user, msg); err != nil {
+		if err := covidBot.SendNotification(msg); err != nil {
 			log.Printf("Error sending message to telegram: %s", err)
 			continue
 		}
