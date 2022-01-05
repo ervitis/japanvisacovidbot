@@ -6,7 +6,7 @@ mkdir -p "./data"
 
 $CONTAINER_RUNTIME run \
 --rm \
---name postgresqsl \
+--name japanvisacovidbotdb \
 -e POSTGRES_PASSWORD="${POSTGRES_PASSWORD}" \
 -e POSTGRES_USER="${POSTGRES_USER}" \
 -e POSTGRES_DB="${POSTGRES_DB}" \
