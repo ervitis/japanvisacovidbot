@@ -86,3 +86,69 @@ func (p *postgresql) FetchLatestDateFromEmbassy(data *model.Embassy) (err error)
 	}
 	return nil
 }
+
+func (p *postgresql) SaveCovid(ctx context.Context, data *model.JapanCovidData) error {
+	query := `INSERT INTO coviddata (datecovid, date, pcr, positive, symptom, symptomless, symtomConfirming, hospitalize, mild, severe, confirming, waiting, discharge, death) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`
+
+	stmt, err := p.conn.PrepareContext(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = stmt.Close()
+	}()
+
+	_, err = stmt.ExecContext(ctx, data.DateCovid, data.Date, data.Pcr, data.Positive, data.Symptom, data.Symptomless, data.SymtomConfirming, data.Hospitalize, data.Mild, data.Severe, data.Confirming, data.Waiting, data.Discharge, data.Death)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *postgresql) GetCovid(ctx context.Context, data *model.JapanCovidData) error {
+	query := `SELECT datecovid, date, pcr, positive, symptom, symptomless, symtomConfirming, hospitalize, mild, severe, confirming, waiting, discharge, death FROM coviddata WHERE date = $1`
+
+	stmt, err := p.conn.PrepareContext(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	r, err := stmt.QueryContext(ctx, data.Date)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err := r.Close(); err != nil {
+			return
+		}
+	}()
+
+	for r.Next() {
+		err := r.Scan(&data.DateCovid, &data.Date, &data.Pcr, &data.Positive, &data.Symptom, &data.Symptomless, &data.SymtomConfirming,
+			&data.Hospitalize, &data.Mild, &data.Severe, &data.Confirming, &data.Waiting, &data.Discharge, &data.Death)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (p *postgresql) UpdateCovid(ctx context.Context, data *model.JapanCovidData) error {
+	query := `UPDATE coviddata SET pcr = $2, positive = $3, symptom = $4, symptomless = $5, symtomConfirming = $6, hospitalize = $7, mild = $8, severe = $9, confirming = $10, waiting = $11, discharge = $12, death = $13 WHERE date = $1`
+
+	stmt, err := p.conn.PrepareContext(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.ExecContext(ctx, data.Date, data.Pcr, data.Positive, data.Symptom, data.Symptomless, data.SymtomConfirming,
+		data.Hospitalize, data.Mild, data.Severe, data.Confirming, data.Waiting, data.Discharge, data.Death)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

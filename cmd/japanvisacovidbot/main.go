@@ -7,6 +7,7 @@ import (
 	"github.com/ervitis/japanvisacovidbot/bots/telegram"
 	"github.com/ervitis/japanvisacovidbot/ports"
 	"github.com/ervitis/japanvisacovidbot/repo"
+	"github.com/ervitis/japanvisacovidbot/scheduler"
 	"log"
 	"time"
 
@@ -30,12 +31,21 @@ func main() {
 	}
 	server := japanvisacovidbot.NewServer()
 
+	cron := scheduler.New()
+
+	if err := cron.ExecuteJob([]scheduler.CovidJob{
+		scheduler.CovidDataFn(db),
+	}...); err != nil {
+		log.Fatal(err)
+	}
+
 	go func(bots []bots.IBot, db ports.IConnection) {
 		for {
 			select {
 			case <-japanvisacovidbot.GlobalSignalHandler.Signals:
 				log.Println("cleaning servers...")
 				tickerCheckEmbassyPages.Stop()
+				cron.Stop()
 				for _, bot := range bots {
 					bot.Close()
 				}
