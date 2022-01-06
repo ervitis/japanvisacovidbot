@@ -35,18 +35,21 @@ func New(cfg *ConfigParameters) bots.IBot {
 
 func (t *telegramBot) handleHealthChecker(_ *tb.Message) {
 	log.Println("checking status")
-	_, _ = t.bot.Send(t.user, "I am alive!")
+	if err := t.retrySend("I am alive!", t.user, t.bot.Send); err != nil {
+		log.Println(err)
+	}
 }
 
 func (t *telegramBot) SendNotification(msg interface{}) error {
-	if _, err := t.bot.Send(t.user, msg); err != nil {
+	if err := t.retrySend(msg, t.user, t.bot.Send); err != nil {
+		log.Println(err)
 		return err
 	}
 	return nil
 }
 
 func (t *telegramBot) StartServer() error {
-	t.bot.Handle("/iamalive", t.handleHealthChecker)
+	t.bot.Handle("/amialive", t.handleHealthChecker)
 
 	log.Println("starting telegram server")
 	t.bot.Start()
@@ -75,14 +78,23 @@ func (t *telegramBot) Close() {
 	}
 }
 
-func (t *telegramBot) retrySend(msg interface{}, fnSend func(interface{}) (*tb.Message, error)) error {
+func (t *telegramBot) retrySend(msg interface{}, to tb.Recipient, fnSend func(to tb.Recipient, what interface{}, options ...interface{}) (*tb.Message, error), options ...interface{}) error {
 	var err error
 	for i := 0; i < 3; i++ {
-		if _, err = fnSend(msg); err == nil {
-			break
+		if _, err = fnSend(to, msg, options...); err == nil {
+			return nil
 		}
-		t := rand.Intn(10)
-		time.Sleep(time.Duration(t) * time.Second)
+		switch err.(type) {
+		case tb.FloodError:
+			err := err.(tb.FloodError)
+			if err.Code == http.StatusTooManyRequests {
+				log.Println("retrying sending message, time", i)
+				time.Sleep(time.Duration(err.RetryAfter) * time.Second)
+			}
+		default:
+			t := rand.Intn(10)
+			time.Sleep(time.Duration(t) * time.Second)
+		}
 	}
 	return fmt.Errorf("error retrying sending message: %w", err)
 }
