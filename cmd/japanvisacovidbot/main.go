@@ -26,7 +26,7 @@ func init() {
 func main() {
 	db := repo.New(&repo.DBConfig)
 	covidBots := []bots.IBot{
-		telegram.New(&telegram.TelegramConfig),
+		telegram.New(&telegram.Config),
 	}
 	server := japanvisacovidbot.NewServer()
 

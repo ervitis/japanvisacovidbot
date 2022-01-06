@@ -62,6 +62,7 @@ func (t *telegramBot) Close() {
 			case tb.FloodError:
 				err := err.(tb.FloodError)
 				if err.Code == http.StatusTooManyRequests {
+					log.Println("retrying closing telegram bot...")
 					time.Sleep(time.Duration(err.RetryAfter) * time.Second)
 				}
 			default:

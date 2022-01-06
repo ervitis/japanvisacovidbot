@@ -3,9 +3,9 @@ package telegram
 import "github.com/kelseyhightower/envconfig"
 
 var (
-	TelegramConfig TelegramConfigParameters
+	Config TelegramConfigParameters
 )
 
 func LoadTelegramConfig() {
-	envconfig.MustProcess("", &TelegramConfig)
+	envconfig.MustProcess("", &Config)
 }
