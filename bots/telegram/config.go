@@ -3,7 +3,7 @@ package telegram
 import "github.com/kelseyhightower/envconfig"
 
 var (
-	Config TelegramConfigParameters
+	Config ConfigParameters
 )
 
 func LoadTelegramConfig() {

@@ -17,7 +17,7 @@ type (
 	}
 )
 
-func New(cfg *TelegramConfigParameters) bots.IBot {
+func New(cfg *ConfigParameters) bots.IBot {
 	if cfg.ID == 0 {
 		panic("must set telegram user ID")
 	}
