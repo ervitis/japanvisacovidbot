@@ -30,6 +30,8 @@ func CovidDataFn(db ports.IConnection) CovidJob {
 				return err
 			}
 
+			log.Printf("data from db: %#v", covidData)
+
 			if covidData.Date == "" {
 				log.Println("saving new data")
 				if err := dataCovid.SaveData(ctx, data); err != nil {
