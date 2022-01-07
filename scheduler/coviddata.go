@@ -12,7 +12,7 @@ func CovidDataFn(db ports.IConnection) CovidJob {
 	dataCovid := japancovid.New(db)
 
 	return CovidJob{
-		Cron: "0 */1 * * *",
+		Cron: "*/16 * * * *",
 		Task: func() error {
 			log.Println("executing task covidJob")
 			ctx, cancel := context.WithCancel(context.Background())
@@ -32,7 +32,7 @@ func CovidDataFn(db ports.IConnection) CovidJob {
 
 			log.Printf("data from db: %#v", covidData)
 
-			if covidData.Date == "" {
+			if covidData.DateCovid.IsZero() {
 				log.Println("saving new data")
 				if err := dataCovid.SaveData(ctx, data); err != nil {
 					return err

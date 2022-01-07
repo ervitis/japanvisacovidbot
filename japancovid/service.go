@@ -77,9 +77,7 @@ func (js *japanCovidService) UpdateData(ctx context.Context, data *model.JapanCo
 
 func (js *japanCovidService) GetData(ctx context.Context, data *model.JapanCovidResponse) (*model.JapanCovidData, error) {
 	dbModel := new(model.JapanCovidData)
-	if err := js.transform(data, dbModel); err != nil {
-		return nil, err
-	}
+	dbModel.Date = strconv.Itoa(data.Date)
 
 	if err := js.db.GetCovid(ctx, dbModel); err != nil {
 		return nil, err
