@@ -36,7 +36,7 @@ func main() {
 	if err := cron.ExecuteJob([]scheduler.CovidJob{
 		scheduler.CovidDataFn(db),
 	}...); err != nil {
-		log.Fatal(err)
+		log.Fatal("error executing job", err)
 	}
 
 	go func(bots []bots.IBot, db ports.IConnection) {

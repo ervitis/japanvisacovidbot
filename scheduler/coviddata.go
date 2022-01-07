@@ -5,14 +5,16 @@ import (
 	"github.com/ervitis/japanvisacovidbot/japancovid"
 	"github.com/ervitis/japanvisacovidbot/model"
 	"github.com/ervitis/japanvisacovidbot/ports"
+	"log"
 )
 
 func CovidDataFn(db ports.IConnection) CovidJob {
 	dataCovid := japancovid.New(db)
 
 	return CovidJob{
-		Cron: "0 0/2 * * *",
+		Cron: "* */5 * * *",
 		Task: func() error {
+			log.Println("executing task covidJob")
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
@@ -21,18 +23,22 @@ func CovidDataFn(db ports.IConnection) CovidJob {
 				return err
 			}
 
+			log.Printf("data from api: %#v", data)
+
 			covidData, err := dataCovid.GetData(ctx, data)
 			if err != nil {
 				return err
 			}
 
 			if covidData.Date == "" {
+				log.Println("saving new data")
 				if err := dataCovid.SaveData(ctx, data); err != nil {
 					return err
 				}
 				return nil
 			}
 
+			log.Println("updating data")
 			if err := dataCovid.UpdateData(ctx, data); err != nil {
 				return err
 			}
