@@ -12,7 +12,7 @@ func CovidDataFn(db ports.IConnection) CovidJob {
 	dataCovid := japancovid.New(db)
 
 	return CovidJob{
-		Cron: "* */5 * * *",
+		Cron: "0 */1 * * *",
 		Task: func() error {
 			log.Println("executing task covidJob")
 			ctx, cancel := context.WithCancel(context.Background())
