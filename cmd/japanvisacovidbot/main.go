@@ -6,6 +6,7 @@ import (
 	"github.com/ervitis/japanvisacovidbot/bots"
 	"github.com/ervitis/japanvisacovidbot/bots/telegram"
 	"github.com/ervitis/japanvisacovidbot/ports"
+	"github.com/ervitis/japanvisacovidbot/prometheus"
 	"github.com/ervitis/japanvisacovidbot/repo"
 	"github.com/ervitis/japanvisacovidbot/scheduler"
 	"log"
@@ -39,6 +40,8 @@ func main() {
 		log.Fatal("error executing job", err)
 	}
 
+	profMetricsServer := prometheus.New()
+
 	go func(bots []bots.IBot, db ports.IConnection) {
 		for {
 			select {
@@ -49,6 +52,7 @@ func main() {
 				for _, bot := range bots {
 					bot.Close()
 				}
+				profMetricsServer.Close()
 				server.Close()
 				return
 			case t := <-tickerCheckEmbassyPages.C:
@@ -59,6 +63,10 @@ func main() {
 			}
 		}
 	}(covidBots, db)
+
+	go func() {
+		profMetricsServer.StartMetricsServer()
+	}()
 
 	for _, bot := range covidBots {
 		go func(bot bots.IBot) {
