@@ -3,7 +3,6 @@ package japanvisacovidbot
 import (
 	"context"
 	"errors"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
 	"os"
@@ -29,7 +28,6 @@ func NewServer() *httpServer {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/health", handleHealthChecker())
-	mux.Handle("/metrics", promhttp.Handler())
 
 	srv := &http.Server{
 		Addr:              ":" + port,
