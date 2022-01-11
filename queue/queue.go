@@ -1,7 +1,6 @@
 package queue
 
 import (
-	"context"
 	"fmt"
 	"github.com/google/uuid"
 	"time"
@@ -54,12 +53,6 @@ func (g *gobbit) Subscribe(topic string, handler func(message *Message)) {
 	if !ok {
 		panic(fmt.Errorf("topic %s does not exist", topic))
 	}
-
-	_, cancel := context.WithCancel(context.Background())
-
-	defer func() {
-		cancel()
-	}()
 
 	go func() {
 		for {
