@@ -2,17 +2,19 @@ package scheduler
 
 import (
 	"context"
+	"github.com/ervitis/japanvisacovidbot/bots"
 	"github.com/ervitis/japanvisacovidbot/japancovid"
 	"github.com/ervitis/japanvisacovidbot/model"
 	"github.com/ervitis/japanvisacovidbot/ports"
+	"github.com/ervitis/japanvisacovidbot/queue"
 	"log"
 )
 
-func CovidDataFn(db ports.IConnection) CovidJob {
-	dataCovid := japancovid.New(db)
+func CovidDataFn(db ports.IConnection, bot []bots.IBot) CovidJob {
+	dataCovid := japancovid.New(db, bot)
 
 	return CovidJob{
-		Cron: "0 */2 * * *",
+		Cron: "*/2 * * * *",
 		Task: func() error {
 			log.Println("executing task covidJob")
 			ctx, cancel := context.WithCancel(context.Background())
@@ -33,6 +35,20 @@ func CovidDataFn(db ports.IConnection) CovidJob {
 				if err := dataCovid.SaveData(ctx, data); err != nil {
 					return err
 				}
+
+				// send event
+				{
+					dayBefore := dataCovid.DateOneDayBefore(data)
+					t := new(model.JapanCovidData)
+					_ = dataCovid.Transform(data, t)
+					payload := map[string]interface{}{
+						"dayBefore": dataCovid.DateToString(dayBefore),
+						"dataNow":   t,
+					}
+
+					queue.Queue.Publish(queue.NewCovidEntryEvent, payload)
+				}
+
 				return nil
 			}
 

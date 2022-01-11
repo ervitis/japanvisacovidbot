@@ -5,7 +5,9 @@ import (
 	"github.com/ervitis/japanvisacovidbot"
 	"github.com/ervitis/japanvisacovidbot/bots"
 	"github.com/ervitis/japanvisacovidbot/bots/telegram"
+	"github.com/ervitis/japanvisacovidbot/japancovid"
 	"github.com/ervitis/japanvisacovidbot/ports"
+	"github.com/ervitis/japanvisacovidbot/queue"
 	"github.com/ervitis/japanvisacovidbot/repo"
 	"github.com/ervitis/japanvisacovidbot/scheduler"
 	"log"
@@ -22,6 +24,16 @@ func init() {
 	telegram.LoadTelegramConfig()
 	repo.LoadDBConfig()
 	japanvisacovidbot.LoadGlobalSignalHandler()
+
+	createTopics()
+}
+
+func createTopics() {
+	for _, topic := range queue.AllTopics() {
+		if err := queue.Queue.CreateTopic(topic); err != nil {
+			panic(err)
+		}
+	}
 }
 
 func main() {
@@ -34,10 +46,14 @@ func main() {
 	cron := scheduler.New()
 
 	if err := cron.ExecuteJob([]scheduler.CovidJob{
-		scheduler.CovidDataFn(db),
+		scheduler.CovidDataFn(db, covidBots),
 	}...); err != nil {
 		log.Fatal("error executing job", err)
 	}
+
+	dataCovid := japancovid.New(db, covidBots)
+
+	queue.Queue.Subscribe(queue.NewCovidEntryEvent, dataCovid.CalculateDeltaBetweenDayBeforeAndToday)
 
 	go func(bots []bots.IBot, db ports.IConnection) {
 		for {
