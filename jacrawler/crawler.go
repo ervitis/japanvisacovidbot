@@ -1,6 +1,7 @@
 package jacrawler
 
 import (
+	"fmt"
 	"github.com/ervitis/japanvisacovidbot/model"
 	"github.com/ervitis/japanvisacovidbot/ports"
 	"github.com/gocolly/colly/v2"
@@ -62,7 +63,7 @@ func (c *covidCrawl) CrawlPage() (data *model.Embassy, err error) {
 	c.crawler.OnHTML(c.emb.GetHtmlSearchElement(), func(h *colly.HTMLElement) {
 		d, isCritical, err := c.emb.GetUpdatedDateFromText(h)
 		if err != nil && isCritical {
-			errCrawler = err
+			errCrawler = fmt.Errorf("error from crawler %s: %w", c.emb.GetISO(), err)
 		} else {
 			if !d.IsZero() {
 				data.UpdatedDate = d

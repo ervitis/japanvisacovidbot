@@ -94,6 +94,9 @@ func (j *japanese) GetUpdatedDateFromText(el *colly.HTMLElement) (time.Time, boo
 	}
 
 	data := getParams(j, el.Text)
+	if data[pYear] == "" {
+		return time.Time{}, false, nil
+	}
 
 	y, err := strconv.Atoi(data[pYear])
 	if err != nil {
