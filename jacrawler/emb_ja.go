@@ -31,8 +31,8 @@ func NewJapaneseEmbassy() IEmbassyData {
 		common: &common{
 			uri:               "https://www.mofa.go.jp/mofaj/ca/cp/page22_003380.html",
 			htmlSearchElement: "div[class=rightalign]",
-			dateLayout:        "2006-01-02",
-			pattern:           fmt.Sprintf(`.{2}(?P<%s>\d)年(?P<%s>\d{2})月(?P<%s>\d{1,2})日`, pYear, pMonth, pDay),
+			dateLayout:        "2006-1-02",
+			pattern:           fmt.Sprintf(`.{2}(?P<%s>\d)年(?P<%s>\d{1,2})月(?P<%s>\d{1,2})日`, pYear, pMonth, pDay),
 		},
 	}
 
