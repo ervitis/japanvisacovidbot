@@ -33,7 +33,8 @@ type (
 )
 
 const (
-	dateLayout = "20060102"
+	dateLayout        = "20060102"
+	dateLayoutMessage = "02 January 2006"
 )
 
 func New(db ports.IConnection, bots []bots.IBot) IJapanCovidService {
@@ -148,7 +149,7 @@ func (js *japanCovidService) CalculateDeltaBetweenDayBeforeAndToday(message *que
 
 	dataNow := payload["dataNow"].(*model.JapanCovidData)
 
-	msg := `New cases:
+	msg := `New cases on %s:
 
 	💀 death: %d
 	🚑 severe: %d
@@ -158,6 +159,7 @@ func (js *japanCovidService) CalculateDeltaBetweenDayBeforeAndToday(message *que
 `
 	msg = fmt.Sprintf(
 		msg,
+		dataNow.DateCovid.Format(dateLayoutMessage),
 		dataNow.Death-dataDayBefore.Death,
 		dataNow.Severe-dataDayBefore.Severe,
 		dataNow.Hospitalize-dataDayBefore.Hospitalize,
