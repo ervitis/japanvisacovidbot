@@ -150,11 +150,11 @@ func (js *japanCovidService) CalculateDeltaBetweenDayBeforeAndToday(message *que
 
 	msg := `New cases:
 
-	death: %d
-	severe: %d
-	hospitalized: %d
-	discharged: %d
-	positive: %d
+	💀 death: %d
+	🚑 severe: %d
+	🏥 hospitalized: %d
+	😊 discharged: %d
+	😷 positive: %d
 `
 	msg = fmt.Sprintf(
 		msg,
