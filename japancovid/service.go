@@ -148,7 +148,14 @@ func (js *japanCovidService) CalculateDeltaBetweenDayBeforeAndToday(message *que
 
 	dataNow := payload["dataNow"].(*model.JapanCovidData)
 
-	msg := `New cases:\n\tdeath: %d\n\tsevere: %d\n\thospitalized: %d\n\tdischarged: %d\t\npositive: %d`
+	msg := `New cases:
+
+	death: %d
+	severe: %d
+	hospitalized: %d
+	discharged: %d
+	positive: %d
+`
 	msg = fmt.Sprintf(
 		msg,
 		dataNow.Death-dataDayBefore.Death,
