@@ -3,6 +3,7 @@ package telegram
 import (
 	"fmt"
 	"github.com/ervitis/japanvisacovidbot/bots"
+	"github.com/ervitis/japanvisacovidbot/email"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"log"
 	"math/rand"
@@ -15,6 +16,10 @@ type (
 		user *tb.User
 		bot  *tb.Bot
 	}
+)
+
+var (
+	btnSend = tb.Btn{}
 )
 
 func New(cfg *ConfigParameters) bots.IBot {
@@ -40,6 +45,26 @@ func (t *telegramBot) handleHealthChecker(_ *tb.Message) {
 	}
 }
 
+func (t *telegramBot) handleSendEmail(_ *tb.Message) {
+	menu := &tb.ReplyMarkup{ResizeReplyKeyboard: true}
+
+	helpText := menu.Text(email.MessageConfirmation)
+	btnSend = menu.Text("Send email")
+	menu.Reply(menu.Row(helpText), menu.Row(btnSend))
+
+	if err := t.retrySend(menu, t.user, t.bot.Send); err != nil {
+		log.Println(err)
+		return
+	}
+}
+
+func (t *telegramBot) handleSendEmailToEmbassy(_ *tb.Message) {
+	emailSvc := email.New(&email.Config)
+	if err := emailSvc.Send(); err != nil {
+		log.Println(err)
+	}
+}
+
 func (t *telegramBot) SendNotification(msg interface{}) error {
 	if err := t.retrySend(msg, t.user, t.bot.Send); err != nil {
 		log.Println(err)
@@ -50,6 +75,8 @@ func (t *telegramBot) SendNotification(msg interface{}) error {
 
 func (t *telegramBot) StartServer() error {
 	t.bot.Handle("/amialive", t.handleHealthChecker)
+	t.bot.Handle("/email", t.handleSendEmail)
+	t.bot.Handle(&btnSend, t.handleSendEmailToEmbassy)
 
 	log.Println("starting telegram server")
 	t.bot.Start()

@@ -5,6 +5,7 @@ import (
 	"github.com/ervitis/japanvisacovidbot"
 	"github.com/ervitis/japanvisacovidbot/bots"
 	"github.com/ervitis/japanvisacovidbot/bots/telegram"
+	"github.com/ervitis/japanvisacovidbot/email"
 	"github.com/ervitis/japanvisacovidbot/japancovid"
 	"github.com/ervitis/japanvisacovidbot/ports"
 	"github.com/ervitis/japanvisacovidbot/queue"
@@ -24,6 +25,7 @@ func init() {
 	telegram.LoadTelegramConfig()
 	repo.LoadDBConfig()
 	japanvisacovidbot.LoadGlobalSignalHandler()
+	email.LoadConfig()
 
 	createTopics()
 }
