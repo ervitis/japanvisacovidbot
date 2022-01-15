@@ -63,11 +63,15 @@ func (t *telegramBot) handleSendEmail(msg *tb.Message) {
 
 func (t *telegramBot) handleSendEmailToEmbassy(fn *tb.Callback) {
 	emailSvc := email.New(&email.Config)
-	if err := emailSvc.Send(); err != nil {
-		log.Println(err)
-		return
-	}
-	if err := t.bot.Respond(fn, &tb.CallbackResponse{Text: "Email sent to " + emailSvc.Properties().To}); err != nil {
+
+	go func(emailSvc email.IEmail) {
+		if err := emailSvc.Send(); err != nil {
+			log.Println(err)
+			return
+		}
+	}(emailSvc)
+
+	if err := t.bot.Respond(fn, &tb.CallbackResponse{Text: "Email sent to " + emailSvc.Properties().To + " if not, see logs"}); err != nil {
 		log.Println(err)
 		return
 	}
