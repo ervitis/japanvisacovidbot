@@ -19,7 +19,7 @@ type (
 )
 
 var (
-	btnSend = tb.Btn{}
+	menu = &tb.ReplyMarkup{ResizeReplyKeyboard: true}
 )
 
 func New(cfg *ConfigParameters) bots.IBot {
@@ -46,23 +46,28 @@ func (t *telegramBot) handleHealthChecker(_ *tb.Message) {
 }
 
 func (t *telegramBot) handleSendEmail(_ *tb.Message) {
-	menu := &tb.ReplyMarkup{ResizeReplyKeyboard: true}
+	links := []string{
+		"https://www.mofa.go.jp/j_info/visit/visa/pdfs/application1_e.pdf",
+		"https://www.mofa.go.jp/mofaj/files/000124525.pdf",
+	}
 
-	helpText := menu.Text(email.MessageConfirmation)
-	btnSend = menu.Text("Send email")
-	menu.Reply(menu.Row(helpText), menu.Row(btnSend))
-
-	if err := t.retrySend(menu, t.user, t.bot.Send); err != nil {
+	if err := t.retrySend(fmt.Sprintf(email.MessageConfirmation, links[0], links[1]), t.user, t.bot.Send, menu); err != nil {
 		log.Println(err)
 		return
 	}
 }
 
-func (t *telegramBot) handleSendEmailToEmbassy(_ *tb.Message) {
+func (t *telegramBot) handleSendEmailToEmbassy(fn *tb.Callback) {
 	emailSvc := email.New(&email.Config)
 	if err := emailSvc.Send(); err != nil {
 		log.Println(err)
+		return
 	}
+	if err := t.bot.Respond(fn, &tb.CallbackResponse{Text: "Email sent to " + emailSvc.Properties().To}); err != nil {
+		log.Println(err)
+		return
+	}
+	log.Println("The email was sent with headers", emailSvc.Properties().Headers)
 }
 
 func (t *telegramBot) SendNotification(msg interface{}) error {
@@ -76,6 +81,9 @@ func (t *telegramBot) SendNotification(msg interface{}) error {
 func (t *telegramBot) StartServer() error {
 	t.bot.Handle("/amialive", t.handleHealthChecker)
 	t.bot.Handle("/email", t.handleSendEmail)
+
+	btnSend := menu.Data("Send email", "sendEmail", "email")
+	menu.Inline(menu.Row(btnSend))
 	t.bot.Handle(&btnSend, t.handleSendEmailToEmbassy)
 
 	log.Println("starting telegram server")

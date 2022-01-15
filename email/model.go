@@ -1,10 +1,5 @@
 package email
 
-import (
-	"fmt"
-	"time"
-)
-
 type (
 	Message struct {
 		ContentType string
@@ -37,7 +32,7 @@ Before sending the email, check the following list of documentation to prepare:
 - Valid passport with two blank pages
 - Valid NIF
 - Photo face
-- Filled the visa documents %s and %s
+- Filled the visa documents %s or %s
 - Certificate of Eligibility, check the expiration date
 - Shinsazumisho
 
@@ -57,17 +52,5 @@ Remember that it's possible that the embassy would ask for more papers and docum
 		{
 			Header: "Importance", Value: "High",
 		},
-	}
-
-	headers = map[string]string{
-		"Date":                        time.Now().Format(layoutDateEmailSend),
-		"Subject":                     "",
-		"Sender":                      "",
-		"Return-Path":                 "",
-		"Reply-To":                    "",
-		"From":                        "",
-		"To":                          "",
-		"Disposition-Notification-To": "",
-		"MIME-Version":                fmt.Sprintf("1.0;\nContent-Type: %s; charset: %s;", ContentType, Charset),
 	}
 )

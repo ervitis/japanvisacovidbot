@@ -6,27 +6,40 @@ import (
 	"net"
 	"net/smtp"
 	"net/textproto"
+	"strings"
 	"time"
 )
 
 type (
 	gmail struct {
-		cfg      *Parameters
-		headers  textproto.MIMEHeader
-		encoding string
+		cfg     *Parameters
+		headers textproto.MIMEHeader
 	}
 )
 
 func New(cfg *Parameters) IEmail {
-	headers["Sender"] = cfg.From
-	headers["Return-Path"] = cfg.From
-	headers["Reply-To"] = cfg.From
-	headers["From"] = cfg.From
-	headers["To"] = cfg.To
-	headers["Disposition-Notification-To"] = cfg.From
+	h := map[string]string{
+		"Date":                        time.Now().Format(layoutDateEmailSend),
+		"Subject":                     cfg.Subject,
+		"Sender":                      cfg.From,
+		"Return-Path":                 cfg.From,
+		"Reply-To":                    cfg.From,
+		"From":                        cfg.From,
+		"To":                          cfg.To,
+		"Disposition-Notification-To": cfg.From,
+		"Return-Receipt-To":           cfg.From,
+		"MIME-Version":                fmt.Sprintf("1.0;\nContent-Type: %s; charset: %s;", ContentType, Charset),
+	}
+
+	headers := make(textproto.MIMEHeader, 0)
+
+	for k, v := range h {
+		headers[k] = []string{v}
+	}
 
 	return &gmail{
-		cfg: cfg,
+		cfg:     cfg,
+		headers: headers,
 	}
 }
 
@@ -37,7 +50,7 @@ func (g *gmail) Send() error {
 		mime += fmt.Sprintf(MessageFormat, v.Header, v.Value)
 	}
 
-	for k, v := range headers {
+	for k, v := range g.headers {
 		mime += fmt.Sprintf(MessageFormat, k, v)
 	}
 
@@ -98,4 +111,18 @@ func (g *gmail) Send() error {
 	}
 
 	return svc.Quit()
+}
+
+func (g *gmail) Properties() *Properties {
+	emailHeaders := make(map[string]string, 0)
+
+	for k, v := range g.headers {
+		emailHeaders[k] = strings.Join(v, ",")
+	}
+
+	return &Properties{
+		From:    g.cfg.From,
+		To:      g.cfg.To,
+		Headers: emailHeaders,
+	}
 }
