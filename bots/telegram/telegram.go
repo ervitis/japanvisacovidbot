@@ -67,6 +67,10 @@ func (t *telegramBot) handleSendEmailToEmbassy(fn *tb.Callback) {
 		log.Println(err)
 		return
 	}
+
+	if err := t.bot.Delete(fn.Message); err != nil {
+		log.Println("Could not delete message to send email", err)
+	}
 	log.Println("The email was sent with headers", emailSvc.Properties().Headers)
 }
 
