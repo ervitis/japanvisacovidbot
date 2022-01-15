@@ -45,7 +45,7 @@ func (t *telegramBot) handleHealthChecker(_ *tb.Message) {
 	}
 }
 
-func (t *telegramBot) handleSendEmail(_ *tb.Message) {
+func (t *telegramBot) handleSendEmail(msg *tb.Message) {
 	links := []string{
 		"https://www.mofa.go.jp/j_info/visit/visa/pdfs/application1_e.pdf",
 		"https://www.mofa.go.jp/mofaj/files/000124525.pdf",
@@ -54,6 +54,10 @@ func (t *telegramBot) handleSendEmail(_ *tb.Message) {
 	if err := t.retrySend(fmt.Sprintf(email.MessageConfirmation, links[0], links[1]), t.user, t.bot.Send, menu); err != nil {
 		log.Println(err)
 		return
+	}
+
+	if err := t.bot.Delete(msg); err != nil {
+		log.Println(err)
 	}
 }
 
