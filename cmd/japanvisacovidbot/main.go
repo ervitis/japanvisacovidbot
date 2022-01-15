@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	tickerCheckEmbassyPages = time.NewTicker(3 * time.Hour)
+	tickerCheckEmbassyPages = time.NewTicker(1 * time.Hour)
 )
 
 func init() {
