@@ -7,6 +7,7 @@ import (
 	"github.com/ervitis/japanvisacovidbot/bots/telegram"
 	"github.com/ervitis/japanvisacovidbot/email"
 	"github.com/ervitis/japanvisacovidbot/japancovid"
+	"github.com/ervitis/japanvisacovidbot/metrics"
 	"github.com/ervitis/japanvisacovidbot/ports"
 	"github.com/ervitis/japanvisacovidbot/queue"
 	"github.com/ervitis/japanvisacovidbot/repo"
@@ -53,6 +54,8 @@ func main() {
 		log.Fatal("error executing job", err)
 	}
 
+	appMetrics := metrics.New()
+
 	dataCovid := japancovid.New(db, covidBots)
 
 	queue.Queue.Subscribe(queue.NewCovidEntryEvent, dataCovid.CalculateDeltaBetweenDayBeforeAndToday)
@@ -64,6 +67,7 @@ func main() {
 				log.Println("cleaning servers...")
 				tickerCheckEmbassyPages.Stop()
 				cron.Stop()
+				appMetrics.Stop()
 				for _, bot := range bots {
 					bot.Close()
 				}
@@ -77,6 +81,10 @@ func main() {
 			}
 		}
 	}(covidBots, db)
+
+	if err := appMetrics.Start(); err != nil {
+		log.Println("Metrics cannot start", err)
+	}
 
 	for _, bot := range covidBots {
 		go func(bot bots.IBot) {
