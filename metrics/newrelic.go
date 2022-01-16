@@ -2,7 +2,7 @@ package metrics
 
 import (
 	"github.com/kelseyhightower/envconfig"
-	newrelic "github.com/newrelic/go-agent"
+	"github.com/newrelic/go-agent/v3/newrelic"
 	"log"
 	"time"
 )
@@ -14,7 +14,7 @@ type (
 	}
 
 	newrelicmetrics struct {
-		cli newrelic.Application
+		cli *newrelic.Application
 	}
 )
 
@@ -26,12 +26,12 @@ func New() IMetrics {
 		return nil
 	}
 
-	app, err := newrelic.NewApplication(newrelic.Config{
-		Enabled:           true,
-		AppName:           cfg.AppName,
-		License:           cfg.License,
-		DistributedTracer: struct{ Enabled bool }{Enabled: true},
-	})
+	app, err := newrelic.NewApplication(
+		newrelic.ConfigAppName(cfg.AppName),
+		newrelic.ConfigDistributedTracerEnabled(true),
+		newrelic.ConfigLicense(cfg.License),
+		newrelic.ConfigEnabled(true),
+	)
 	if err != nil {
 		log.Println("Metrics are not available:", err)
 		return nil
