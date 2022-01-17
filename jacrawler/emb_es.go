@@ -1,6 +1,7 @@
 package jacrawler
 
 import (
+	"context"
 	"fmt"
 	"github.com/ervitis/japanvisacovidbot/model"
 	"github.com/ervitis/japanvisacovidbot/ports"
@@ -48,10 +49,10 @@ func (s *spanish) YearModifier() int {
 	return s.yearModifier
 }
 
-func (s *spanish) IsDateUpdated(embassy *model.Embassy, connection ports.IConnection) bool {
+func (s *spanish) IsDateUpdated(ctx context.Context, embassy *model.Embassy) bool {
 	c := new(model.Embassy)
 	c.EmbassyISO = s.iso
-	if err := connection.FetchLatestDateFromEmbassy(c); err != nil {
+	if err := s.db.FetchLatestDateFromEmbassy(ctx, c); err != nil {
 		log.Printf("There was an error fetching data from db: %s\n", err)
 		return true
 	}
@@ -59,9 +60,9 @@ func (s *spanish) IsDateUpdated(embassy *model.Embassy, connection ports.IConnec
 	return c.UpdatedDate.After(embassy.UpdatedDate) || c.UpdatedDate.Equal(embassy.UpdatedDate)
 }
 
-func (s *spanish) UpdateDate(embassy *model.Embassy, connection ports.IConnection) error {
+func (s *spanish) UpdateDate(ctx context.Context, embassy *model.Embassy) error {
 	embassy.EmbassyISO = s.iso
-	return connection.Save(embassy)
+	return s.db.Save(ctx, embassy)
 }
 
 func (s *spanish) GetISO() string {
@@ -86,11 +87,12 @@ func (s *spanish) GetUpdatedDateFromText(element *colly.HTMLElement) (time.Time,
 	return pt, false, err
 }
 
-func NewSpanishEmbassy() IEmbassyData {
+func NewSpanishEmbassy(db ports.IConnection) IEmbassyData {
 	esp := &spanish{
 		yearModifier: 0,
 		iso:          "es",
 		common: &common{
+			db:                db,
 			uri:               "https://www.es.emb-japan.go.jp/itpr_es/00_001125.html",
 			pattern:           fmt.Sprintf(`(?P<%s>\d{4})\/(?P<%s>\d{1,2})\/(?P<%s>\d{1,2})`, pYear, pMonth, pDay),
 			htmlSearchElement: "div[class=rightalign]",

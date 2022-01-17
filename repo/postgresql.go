@@ -39,10 +39,8 @@ func New(parameters *DBConfigParameters) ports.IConnection {
 	}
 }
 
-func (p *postgresql) Save(data *model.Embassy) error {
+func (p *postgresql) Save(ctx context.Context, data *model.Embassy) error {
 	query := `INSERT INTO embassydates (date, embassy) VALUES ($1, $2)`
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	stmt, err := p.conn.PrepareContext(ctx, query)
 	if err != nil {
@@ -57,10 +55,8 @@ func (p *postgresql) Save(data *model.Embassy) error {
 	return nil
 }
 
-func (p *postgresql) FetchLatestDateFromEmbassy(data *model.Embassy) (err error) {
+func (p *postgresql) FetchLatestDateFromEmbassy(ctx context.Context, data *model.Embassy) (err error) {
 	query := `SELECT date, embassy FROM embassydates WHERE embassy=$1 ORDER BY date DESC LIMIT 1`
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	stmt, err := p.conn.PrepareContext(ctx, query)
 	if err != nil {
@@ -151,4 +147,8 @@ func (p *postgresql) UpdateCovid(ctx context.Context, data *model.JapanCovidData
 	}
 
 	return nil
+}
+
+func (p *postgresql) Close() error {
+	return p.conn.Close()
 }

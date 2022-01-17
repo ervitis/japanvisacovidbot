@@ -1,6 +1,7 @@
 package jacrawler
 
 import (
+	"context"
 	"fmt"
 	"github.com/ervitis/japanvisacovidbot/model"
 	"github.com/ervitis/japanvisacovidbot/ports"
@@ -17,6 +18,8 @@ const (
 
 type (
 	common struct {
+		db ports.IConnection
+
 		uri               string
 		pattern           string
 		htmlSearchElement string
@@ -26,8 +29,7 @@ type (
 
 	covidCrawl struct {
 		crawler *colly.Collector
-
-		emb IEmbassyData
+		emb     IEmbassyData
 	}
 
 	ICovidCrawler interface {
@@ -42,8 +44,8 @@ type (
 		GetRegex() *regexp.Regexp
 		GetDateValue(map[string]string) string
 		YearModifier() int
-		IsDateUpdated(*model.Embassy, ports.IConnection) bool
-		UpdateDate(*model.Embassy, ports.IConnection) error
+		IsDateUpdated(context.Context, *model.Embassy) bool
+		UpdateDate(context.Context, *model.Embassy) error
 		GetISO() string
 		GetUpdatedDateFromText(*colly.HTMLElement) (time.Time, bool, error)
 	}

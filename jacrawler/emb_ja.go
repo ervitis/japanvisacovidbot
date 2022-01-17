@@ -1,6 +1,7 @@
 package jacrawler
 
 import (
+	"context"
 	"fmt"
 	"github.com/ervitis/japanvisacovidbot/model"
 	"github.com/ervitis/japanvisacovidbot/ports"
@@ -24,11 +25,12 @@ const (
 	reiwaBegin = 2018
 )
 
-func NewJapaneseEmbassy() IEmbassyData {
+func NewJapaneseEmbassy(db ports.IConnection) IEmbassyData {
 	jap := &japanese{
 		yearModifier: reiwaBegin,
 		iso:          "ja",
 		common: &common{
+			db:                db,
 			uri:               "https://www.mofa.go.jp/mofaj/ca/cp/page22_003380.html",
 			htmlSearchElement: "div[class=rightalign]",
 			dateLayout:        "2006-1-02",
@@ -40,10 +42,10 @@ func NewJapaneseEmbassy() IEmbassyData {
 	return jap
 }
 
-func (j *japanese) IsDateUpdated(data *model.Embassy, db ports.IConnection) bool {
+func (j *japanese) IsDateUpdated(ctx context.Context, data *model.Embassy) bool {
 	c := new(model.Embassy)
 	c.EmbassyISO = j.iso
-	if err := db.FetchLatestDateFromEmbassy(c); err != nil {
+	if err := j.db.FetchLatestDateFromEmbassy(ctx, c); err != nil {
 		log.Printf("There was an error fetching data from db: %s\n", err)
 		return true
 	}
@@ -51,9 +53,9 @@ func (j *japanese) IsDateUpdated(data *model.Embassy, db ports.IConnection) bool
 	return c.UpdatedDate.After(data.UpdatedDate) || c.UpdatedDate.Equal(data.UpdatedDate)
 }
 
-func (j *japanese) UpdateDate(data *model.Embassy, db ports.IConnection) error {
+func (j *japanese) UpdateDate(ctx context.Context, data *model.Embassy) error {
 	data.EmbassyISO = j.iso
-	return db.Save(data)
+	return j.db.Save(ctx, data)
 }
 
 func (j *japanese) GetUri() string {
