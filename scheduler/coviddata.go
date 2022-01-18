@@ -20,7 +20,7 @@ func CovidDataFn(db ports.IConnection, bot []bots.IBot, appMetrics metrics.IMetr
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			return appMetrics.ExecuteWithSegment(ctx, "covidJobTask", func() error {
+			return appMetrics.ExecuteWithSegment("covidJobTask", func() error {
 				dataCovid := japancovid.New(db, bot)
 
 				data := new(model.JapanCovidResponse)
