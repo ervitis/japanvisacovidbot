@@ -83,8 +83,8 @@ func (p *postgresql) FetchLatestDateFromEmbassy(ctx context.Context, data *model
 	return nil
 }
 
-func (p *postgresql) SaveCovid(ctx context.Context, data *model.JapanCovidData) error {
-	query := `INSERT INTO coviddata (datecovid, date, pcr, positive, symptom, symptomless, symtomConfirming, hospitalize, mild, severe, confirming, waiting, discharge, death) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`
+func (p *postgresql) SaveCovid(ctx context.Context, data *model.JapanCovidData, tableName string) error {
+	query := fmt.Sprintf(`INSERT INTO %s (datecovid, date, pcr, positive, symptom, symptomless, symtomConfirming, hospitalize, mild, severe, confirming, waiting, discharge, death) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`, tableName)
 
 	stmt, err := p.conn.PrepareContext(ctx, query)
 	if err != nil {

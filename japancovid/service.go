@@ -66,7 +66,7 @@ func (js *japanCovidService) SaveData(ctx context.Context, data *model.JapanCovi
 		return err
 	}
 
-	if err := js.db.SaveCovid(ctx, dbModel); err != nil {
+	if err := js.db.SaveCovid(ctx, dbModel, "coviddata"); err != nil {
 		return err
 	}
 	return
@@ -157,14 +157,28 @@ func (js *japanCovidService) CalculateDeltaBetweenDayBeforeAndToday(message *que
 	😊 discharged: %d
 	😷 positive: %d
 `
+	diffData := &model.JapanCovidData{
+		Date:        dataNow.DateCovid.Format(dateLayoutMessage),
+		DateCovid:   dataNow.DateCovid,
+		Positive:    dataNow.Positive - dataDayBefore.Positive,
+		Hospitalize: dataNow.Hospitalize - dataDayBefore.Hospitalize,
+		Severe:      dataNow.Severe - dataDayBefore.Severe,
+		Discharge:   dataNow.Discharge - dataDayBefore.Discharge,
+		Death:       dataNow.Death - dataDayBefore.Death,
+	}
+
+	if err := js.db.SaveCovid(ctx, diffData, "diffdatacovid"); err != nil {
+		log.Println("error saving diff data into diffdatacovid table")
+	}
+
 	msg = fmt.Sprintf(
 		msg,
-		dataNow.DateCovid.Format(dateLayoutMessage),
-		dataNow.Death-dataDayBefore.Death,
-		dataNow.Severe-dataDayBefore.Severe,
-		dataNow.Hospitalize-dataDayBefore.Hospitalize,
-		dataNow.Discharge-dataDayBefore.Discharge,
-		dataNow.Positive-dataDayBefore.Positive,
+		diffData.Date,
+		diffData.Death,
+		diffData.Severe,
+		diffData.Hospitalize,
+		diffData.Discharge,
+		diffData.Positive,
 	)
 
 	log.Println("Try sending notification to bot", msg)
