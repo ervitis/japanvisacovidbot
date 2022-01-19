@@ -168,7 +168,7 @@ func (js *japanCovidService) CalculateDeltaBetweenDayBeforeAndToday(message *que
 	}
 
 	if err := js.db.SaveCovid(ctx, diffData, "diffdatacovid"); err != nil {
-		log.Println("error saving diff data into diffdatacovid table")
+		log.Println("error saving diff data into diffdatacovid table", err)
 	}
 
 	msg = fmt.Sprintf(
