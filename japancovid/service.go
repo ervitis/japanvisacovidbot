@@ -158,7 +158,7 @@ func (js *japanCovidService) CalculateDeltaBetweenDayBeforeAndToday(message *que
 	😷 positive: %d
 `
 	diffData := &model.JapanCovidData{
-		Date:        dataNow.DateCovid.Format(dateLayoutMessage),
+		Date:        dataNow.DateCovid.Format(dateLayout),
 		DateCovid:   dataNow.DateCovid,
 		Positive:    dataNow.Positive - dataDayBefore.Positive,
 		Hospitalize: dataNow.Hospitalize - dataDayBefore.Hospitalize,
@@ -173,7 +173,7 @@ func (js *japanCovidService) CalculateDeltaBetweenDayBeforeAndToday(message *que
 
 	msg = fmt.Sprintf(
 		msg,
-		diffData.Date,
+		diffData.DateCovid.Format(dateLayoutMessage),
 		diffData.Death,
 		diffData.Severe,
 		diffData.Hospitalize,
