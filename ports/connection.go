@@ -12,7 +12,7 @@ type (
 		SaveCovid(context.Context, *model.JapanCovidData, string) error
 		UpdateCovid(context.Context, *model.JapanCovidData) error
 		GetCovid(context.Context, *model.JapanCovidData) error
-		GetAll(context.Context, []*model.JapanCovidData, string) error
+		GetAll(context.Context, *[]model.JapanCovidData, string) error
 		Close() error
 	}
 )

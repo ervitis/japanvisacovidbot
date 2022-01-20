@@ -153,8 +153,8 @@ func (p *postgresql) Close() error {
 	return p.conn.Close()
 }
 
-func (p *postgresql) GetAll(ctx context.Context, all []*model.JapanCovidData, tableName string) error {
-	query := fmt.Sprintf(`SELECT datecovid, date, pcr, positive, symptom, symptomless, symtomConfirming, hospitalize, mild, severe, confirming, waiting, discharge, death FROM %s`, tableName)
+func (p *postgresql) GetAll(ctx context.Context, all *[]model.JapanCovidData, tableName string) error {
+	query := fmt.Sprintf(`SELECT datecovid, date, pcr, positive, symptom, symptomless, symtomConfirming, hospitalize, mild, severe, confirming, waiting, discharge, death FROM %s ORDER BY datecovid ASC`, tableName)
 
 	stmt, err := p.conn.PrepareContext(ctx, query)
 	if err != nil {
@@ -172,15 +172,17 @@ func (p *postgresql) GetAll(ctx context.Context, all []*model.JapanCovidData, ta
 		}
 	}()
 
+	arr := make([]model.JapanCovidData, 0)
 	for r.Next() {
-		var data *model.JapanCovidData
+		data := new(model.JapanCovidData)
 		err := r.Scan(&data.DateCovid, &data.Date, &data.Pcr, &data.Positive, &data.Symptom, &data.Symptomless, &data.SymtomConfirming,
 			&data.Hospitalize, &data.Mild, &data.Severe, &data.Confirming, &data.Waiting, &data.Discharge, &data.Death)
 		if err != nil {
 			return err
 		}
-		all = append(all, data)
+		arr = append(arr, *data)
 	}
+	*all = arr
 
 	return nil
 }
