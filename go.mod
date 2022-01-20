@@ -9,8 +9,8 @@ require (
 	github.com/gocolly/colly/v2 v2.1.0
 	github.com/google/uuid v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/lib/pq v1.10.4
 	github.com/newrelic/go-agent/v3 v3.15.2
+	github.com/newrelic/go-agent/v3/integrations/nrpq v1.1.1
 	gopkg.in/tucnak/telebot.v2 v2.4.1
 )
 
@@ -24,6 +24,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
+	github.com/lib/pq v1.10.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect

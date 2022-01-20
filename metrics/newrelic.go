@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"context"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"log"
@@ -58,8 +59,9 @@ func (m *newrelicmetrics) Stop() {
 	m.cli.Shutdown(5 * time.Second)
 }
 
-func (m *newrelicmetrics) ExecuteWithSegment(name string, fn func() error) error {
+func (m *newrelicmetrics) ExecuteWithSegment(ctx context.Context, name string, fn func(ctx context.Context) error) error {
 	txn := m.cli.StartTransaction(name)
+	ctx = newrelic.NewContext(ctx, txn)
 	defer txn.End()
-	return fn()
+	return fn(ctx)
 }

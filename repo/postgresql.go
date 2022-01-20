@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/ervitis/japanvisacovidbot/model"
 	"github.com/ervitis/japanvisacovidbot/ports"
-	_ "github.com/lib/pq"
+	_ "github.com/newrelic/go-agent/v3/integrations/nrpq"
 	"strings"
 	"time"
 )
@@ -151,4 +151,36 @@ func (p *postgresql) UpdateCovid(ctx context.Context, data *model.JapanCovidData
 
 func (p *postgresql) Close() error {
 	return p.conn.Close()
+}
+
+func (p *postgresql) GetAll(ctx context.Context, all []*model.JapanCovidData, tableName string) error {
+	query := fmt.Sprintf(`SELECT datecovid, date, pcr, positive, symptom, symptomless, symtomConfirming, hospitalize, mild, severe, confirming, waiting, discharge, death FROM %s`, tableName)
+
+	stmt, err := p.conn.PrepareContext(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	r, err := stmt.QueryContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err := r.Close(); err != nil {
+			return
+		}
+	}()
+
+	for r.Next() {
+		var data *model.JapanCovidData
+		err := r.Scan(&data.DateCovid, &data.Date, &data.Pcr, &data.Positive, &data.Symptom, &data.Symptomless, &data.SymtomConfirming,
+			&data.Hospitalize, &data.Mild, &data.Severe, &data.Confirming, &data.Waiting, &data.Discharge, &data.Death)
+		if err != nil {
+			return err
+		}
+		all = append(all, data)
+	}
+
+	return nil
 }

@@ -106,7 +106,7 @@ func doCrawlerService(covidBot bots.IBot, embassies []jacrawler.IEmbassyData, ap
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	if err := appMetrics.ExecuteWithSegment("scrapWebEmbassies", func() error {
+	if err := appMetrics.ExecuteWithSegment(ctx, "scrapWebEmbassies", func(ctx context.Context) error {
 		for _, embassy := range embassies {
 			crawler := jacrawler.NewCovidCrawler(embassy)
 			data, err := crawler.CrawlPage()
