@@ -22,7 +22,15 @@ var (
 	MessageBody = `%s,
 Me llamo Victor Martin Alonso. El motivo de mi correo es pedir el visado de trabajo de Japón.
 
-Tengo en posesión los documentos necesarios que aparecen en la página web de la embajada. ¿Cuales serían los siguientes pasos para obtener el visado?
+Tengo en posesión los documentos necesarios que aparecen en la página web de la embajada. 
+
+- DNI
+- CoE enviado por mi empresa
+- Pasaporte en vigor
+- Fotografías
+- Aplicación para el visado
+
+¿Cuales serían los siguientes pasos para obtener el visado?
 
 Un saludo y muchas gracias.
 `
