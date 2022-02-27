@@ -29,6 +29,7 @@ Tengo en posesión los documentos necesarios que aparecen en la página web de l
 - Pasaporte en vigor
 - Fotografías
 - Aplicación para el visado
+- Aplicación registrada en el sistema Entrants, Returnees Follow-up System (ERFS) patrocinado por mi empresa
 
 ¿Cuales serían los siguientes pasos para obtener el visado?
 
@@ -42,7 +43,7 @@ Before sending the email, check the following list of documentation to prepare:
 - Photo face
 - Filled the visa documents %s or %s
 - Certificate of Eligibility, check the expiration date
-- Shinsazumisho
+- Application for ERFS system issued by the company
 
 Remember that it's possible that the embassy would ask for more papers and documentation
 `
