@@ -84,6 +84,9 @@ func (s *spanish) GetUpdatedDateFromText(element *colly.HTMLElement) (time.Time,
 	data[pYear] = strconv.Itoa(s.YearModifier() + y)
 
 	pt, err := time.Parse(s.GetDateLayout(), s.GetDateValue(data))
+	if err != nil {
+		pt, err = time.Parse("2006/1/2", s.GetDateValue(data))
+	}
 	return pt, false, err
 }
 
