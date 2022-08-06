@@ -50,13 +50,13 @@ func main() {
 
 	appMetrics := metrics.New()
 
+	dataCovid := japancovid.New(db, covidBots, japancovid.NewCovidEndpoint(japancovid.NewRestClient()))
+
 	if err := cron.ExecuteJob([]scheduler.CovidJob{
-		scheduler.CovidDataFn(db, covidBots, appMetrics),
+		scheduler.CovidDataFn(db, covidBots, appMetrics, dataCovid),
 	}...); err != nil {
 		log.Fatal("error executing job", err)
 	}
-
-	dataCovid := japancovid.New(db, covidBots)
 
 	queue.Queue.Subscribe(queue.NewCovidEntryEvent, dataCovid.CalculateDeltaBetweenDayBeforeAndToday)
 

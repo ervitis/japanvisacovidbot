@@ -11,7 +11,7 @@ import (
 	"log"
 )
 
-func CovidDataFn(db ports.IConnection, bot []bots.IBot, appMetrics metrics.IMetrics) CovidJob {
+func CovidDataFn(db ports.IConnection, bot []bots.IBot, appMetrics metrics.IMetrics, covidService japancovid.IJapanCovidService) CovidJob {
 
 	return CovidJob{
 		Cron: "0 */2 * * *",
@@ -21,31 +21,28 @@ func CovidDataFn(db ports.IConnection, bot []bots.IBot, appMetrics metrics.IMetr
 			defer cancel()
 
 			return appMetrics.ExecuteWithSegment(ctx, "covidJobTask", func(ctx context.Context) error {
-				dataCovid := japancovid.New(db, bot)
-
-				data := new(model.JapanCovidResponse)
-				if err := dataCovid.GetLatest(ctx, data); err != nil {
+				data := new(model.JapanCovidData)
+				if err := covidService.GetLatest(ctx, data); err != nil {
 					return err
 				}
 
-				covidData, err := dataCovid.GetData(ctx, data)
+				dbData, err := covidService.GetDataFromDB(ctx)
 				if err != nil {
 					return err
 				}
 
-				if covidData.DateCovid.IsZero() {
+				if dbData.DateCovid.IsZero() {
 					log.Println("saving new data of", data.Date)
-					if err := dataCovid.SaveData(ctx, data); err != nil {
+					if err := covidService.SaveData(ctx, data); err != nil {
 						return err
 					}
 
 					// send event
 					{
-						dayBefore := dataCovid.DateOneDayBefore(data)
+						dayBefore := covidService.DateOneDayBefore(data)
 						t := new(model.JapanCovidData)
-						_ = dataCovid.Transform(data, t)
 						payload := map[string]interface{}{
-							"dayBefore": dataCovid.DateToString(dayBefore),
+							"dayBefore": covidService.DateToString(dayBefore),
 							"dataNow":   t,
 						}
 
@@ -56,7 +53,7 @@ func CovidDataFn(db ports.IConnection, bot []bots.IBot, appMetrics metrics.IMetr
 				}
 
 				log.Println("updating data of", data.Date)
-				if err := dataCovid.UpdateData(ctx, data); err != nil {
+				if err := covidService.UpdateData(ctx, data); err != nil {
 					return err
 				}
 				return nil
