@@ -7,7 +7,6 @@ import (
 	"github.com/ervitis/japanvisacovidbot/queue"
 	"github.com/ervitis/japanvisacovidbot/repo"
 	"log"
-	"strconv"
 	"time"
 )
 
@@ -18,7 +17,7 @@ func init() {
 func main() {
 	db := repo.New(&repo.DBConfig)
 
-	dataCovid := japancovid.New(db, nil)
+	dataCovid := japancovid.New(db, nil, japancovid.NewCovidEndpoint(japancovid.NewRestClient()))
 
 	all := make([]model.JapanCovidData, 0)
 	allDiff := make([]model.JapanCovidData, 0)
@@ -51,10 +50,8 @@ func main() {
 			continue
 		}
 
-		n, _ := strconv.Atoi(data.Date)
-
-		dr := &model.JapanCovidResponse{
-			Date:             n,
+		dr := &model.JapanCovidData{
+			Date:             data.Date,
 			Pcr:              data.Pcr,
 			Positive:         data.Positive,
 			Symptom:          data.Symptom,
