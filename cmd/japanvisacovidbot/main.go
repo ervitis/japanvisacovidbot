@@ -42,7 +42,7 @@ func createTopics() {
 func main() {
 	db := repo.New(&repo.DBConfig)
 	covidBots := []bots.IBot{
-		telegram.New(&telegram.Config),
+		//telegram.New(&telegram.Config),
 	}
 	server := japanvisacovidbot.NewServer()
 
@@ -53,7 +53,7 @@ func main() {
 	dataCovid := japancovid.New(db, covidBots, japancovid.NewCovidEndpoint(japancovid.NewRestClient()))
 
 	if err := cron.ExecuteJob([]scheduler.CovidJob{
-		scheduler.CovidDataFn(db, covidBots, appMetrics, dataCovid),
+		scheduler.CovidDataFn(appMetrics, dataCovid),
 	}...); err != nil {
 		log.Fatal("error executing job", err)
 	}

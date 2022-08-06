@@ -2,16 +2,14 @@ package scheduler
 
 import (
 	"context"
-	"github.com/ervitis/japanvisacovidbot/bots"
 	"github.com/ervitis/japanvisacovidbot/japancovid"
 	"github.com/ervitis/japanvisacovidbot/metrics"
 	"github.com/ervitis/japanvisacovidbot/model"
-	"github.com/ervitis/japanvisacovidbot/ports"
 	"github.com/ervitis/japanvisacovidbot/queue"
 	"log"
 )
 
-func CovidDataFn(db ports.IConnection, bot []bots.IBot, appMetrics metrics.IMetrics, covidService japancovid.IJapanCovidService) CovidJob {
+func CovidDataFn(appMetrics metrics.IMetrics, covidService japancovid.IJapanCovidService) CovidJob {
 
 	return CovidJob{
 		Cron: "0 */2 * * *",
@@ -26,7 +24,7 @@ func CovidDataFn(db ports.IConnection, bot []bots.IBot, appMetrics metrics.IMetr
 					return err
 				}
 
-				dbData, err := covidService.GetDataFromDB(ctx)
+				dbData, err := covidService.GetDataByDateFromDB(ctx, data.Date)
 				if err != nil {
 					return err
 				}

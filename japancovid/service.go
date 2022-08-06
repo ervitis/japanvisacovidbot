@@ -21,7 +21,7 @@ type (
 	IJapanCovidService interface {
 		GetLatest(context.Context, *model.JapanCovidData) error
 		SaveData(context.Context, *model.JapanCovidData) (err error)
-		GetDataFromDB(context.Context) (*model.JapanCovidData, error)
+		GetDataByDateFromDB(ctx context.Context, date string) (*model.JapanCovidData, error)
 		UpdateData(context.Context, *model.JapanCovidData) error
 		DateOneDayBefore(*model.JapanCovidData) time.Time
 		DateToString(time.Time) string
@@ -62,8 +62,9 @@ func (js *japanCovidService) UpdateData(ctx context.Context, data *model.JapanCo
 	return nil
 }
 
-func (js *japanCovidService) GetDataFromDB(ctx context.Context) (*model.JapanCovidData, error) {
+func (js *japanCovidService) GetDataByDateFromDB(ctx context.Context, date string) (*model.JapanCovidData, error) {
 	dbModel := new(model.JapanCovidData)
+	dbModel.Date = date
 
 	if err := js.db.GetCovid(ctx, dbModel); err != nil {
 		return nil, err

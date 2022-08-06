@@ -63,14 +63,14 @@ type (
 		Updated time.Time `json:"updated"`
 	}
 
-	covid19japanSummary struct { // TODO use a generic model
-		responseModel
-		url string
+	covidSummary struct { // TODO use a generic model
+		model *responseModel
+		url   string
 	}
 
 	endpoint struct {
-		covid19japanSummary
-		client IRestClient
+		response covidSummary
+		client   IRestClient
 	}
 
 	Endpointer interface {
@@ -79,22 +79,22 @@ type (
 	}
 )
 
-func newEndpoint() covid19japanSummary {
-	return covid19japanSummary{
-		url: "https://data.covid19japan.com/summary/latest.json",
+func newEndpoint() covidSummary {
+	return covidSummary{
+		model: new(responseModel),
+		url:   "https://data.covid19japan.com/summary/latest.json",
 	}
 }
 
 func NewCovidEndpoint(client IRestClient) Endpointer {
 	return &endpoint{
-		covid19japanSummary: newEndpoint(),
-		client:              client,
+		response: newEndpoint(),
+		client:   client,
 	}
 }
 
 func (e endpoint) GetData(ctx context.Context, data *model.JapanCovidData) error {
-	responseData := e.covid19japanSummary
-	resp, err := e.client.R().SetContext(ctx).SetResult(responseData).Get(e.url)
+	resp, err := e.client.R().SetContext(ctx).SetResult(&e.response.model).Get(e.response.url)
 	if err != nil {
 		return err
 	}
@@ -102,11 +102,11 @@ func (e endpoint) GetData(ctx context.Context, data *model.JapanCovidData) error
 	if resp.IsError() {
 		return fmt.Errorf("response error: %d %s: %v", resp.StatusCode(), resp.Status(), resp.Error())
 	}
-	return e.TransformIntoModel(&responseData, data)
+	return e.TransformIntoModel(e.response.model, data)
 }
 
 func (e endpoint) TransformIntoModel(resp interface{}, data *model.JapanCovidData) error {
-	respData, ok := resp.(responseModel)
+	respData, ok := resp.(*responseModel)
 	if !ok {
 		return ErrCouldNotConvert
 	}
@@ -117,15 +117,13 @@ func (e endpoint) TransformIntoModel(resp interface{}, data *model.JapanCovidDat
 		return ErrCouldNotParseResponseDate
 	}
 
-	data = &model.JapanCovidData{
-		Date:        latest.Date,
-		DateCovid:   dateCovidLatest,
-		Pcr:         latest.TestedCumulative,
-		Hospitalize: latest.CruiseCriticalCumulative,
-		Discharge:   latest.RecoveredCumulative,
-		Positive:    latest.ConfirmedCumulative,
-		Severe:      latest.CriticalCumulative,
-		Death:       latest.DeceasedCumulative,
-	}
+	data.Date = latest.Date
+	data.DateCovid = dateCovidLatest
+	data.Pcr = latest.TestedCumulative
+	data.Hospitalize = latest.CruiseCriticalCumulative
+	data.Discharge = latest.RecoveredCumulative
+	data.Positive = latest.ConfirmedCumulative
+	data.Severe = latest.CriticalCumulative
+	data.Death = latest.DeceasedCumulative
 	return nil
 }
