@@ -42,7 +42,7 @@ func createTopics() {
 func main() {
 	db := repo.New(&repo.DBConfig)
 	covidBots := []bots.IBot{
-		//telegram.New(&telegram.Config),
+		telegram.New(&telegram.Config),
 	}
 	server := japanvisacovidbot.NewServer()
 
