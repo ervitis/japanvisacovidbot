@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ervitis/japanvisacovidbot/model"
 	"github.com/pkg/errors"
+	"strings"
 	"time"
 )
 
@@ -117,7 +118,7 @@ func (e endpoint) TransformIntoModel(resp interface{}, data *model.JapanCovidDat
 		return ErrCouldNotParseResponseDate
 	}
 
-	data.Date = latest.Date
+	data.Date = strings.ReplaceAll(latest.Date, "-", "")
 	data.DateCovid = dateCovidLatest
 	data.Pcr = latest.TestedCumulative
 	data.Hospitalize = latest.CruiseCriticalCumulative
