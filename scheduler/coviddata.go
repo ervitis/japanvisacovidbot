@@ -38,10 +38,9 @@ func CovidDataFn(appMetrics metrics.IMetrics, covidService japancovid.IJapanCovi
 					// send event
 					{
 						dayBefore := covidService.DateOneDayBefore(data)
-						t := new(model.JapanCovidData)
 						payload := map[string]interface{}{
 							"dayBefore": covidService.DateToString(dayBefore),
-							"dataNow":   t,
+							"dataNow":   data,
 						}
 
 						queue.Queue.Publish(queue.NewCovidEntryEvent, payload)
